@@ -15,6 +15,7 @@ def gpt4_agent():
     with open(messages_path) as json_file:
         messages = json.load(json_file)
 
+    bash_response = "Create bash commands that do that. Give me them one by one."
     while True:
 
         try:
@@ -23,29 +24,23 @@ def gpt4_agent():
             messages=messages
             )
         except InvalidRequestError as e:
-            # Check if the error message matches the context length issue
-            if "maximum context length" in str(e):
-                response, messages = handle_too_long_context(messages)
-
-                with open(messages_path, 'w') as outfile:
-                    json.dump(messages, outfile)
-
-            else:
+            if "maximum context length" not in str(e):
                 # Re-raise the exception if it's not what we're looking for
                 raise e
+
+            response, messages = handle_too_long_context(messages)
+
+            with open(messages_path, 'w') as outfile:
+                json.dump(messages, outfile)
 
         response_content = response["choices"][0]["message"]["content"]
 
         messages = update_messages(response_content, "assistant", messages, messages_path)
 
-        # Define the regular expression pattern
-        pattern = r'```bash\n(.*?)\n```'
-
-        bash_matches = re.findall(pattern, response_content, re.DOTALL)
+        bash_matches = re.findall(r'```bash\n(.*?)\n```', response_content, re.DOTALL)
 
         non_bash_languages = detect_non_bash_code(response_content)
 
-        bash_response = "Create bash commands that do that. Give me them one by one."
         if bash_matches:
             content = ""
         # matches is now a list of all bash commands in the string

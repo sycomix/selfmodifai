@@ -26,11 +26,7 @@ def format_nbl(non_bash_languages):
         nbl_str = f"{first_lang} and {sec_lang}"
 
     else:
-        nbl_str = ""
-
-        for nbl in non_bash_languages[:-1]:
-            nbl_str += f"{nbl}, "
-
+        nbl_str = "".join(f"{nbl}, " for nbl in non_bash_languages[:-1])
         last_lang = non_bash_languages[-1]
         nbl_str += f"and {last_lang}"
 
